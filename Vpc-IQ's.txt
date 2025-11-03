@@ -50,7 +50,7 @@
 3. What is the default VPC and how is it different from a custom VPC?
    - A default VPC is automatically created by AWS in each region. It allows you to launch instances quickly that can immediately communicate with the internet.
    - It comes with everything preconfigured including a default route table, security group, network ACL, One public subnet per Availability Zone, and an Internet Gateway attached.
-   - A custom VPC is one that you create manually. You have full control over the subnets, route tables, gateways, and IP ranges.
+   - A custom VPC is one that we can create manually. we have have full control over the subnets, route tables, gateways, and IP ranges.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -286,4 +286,5 @@
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 21. How do you automate VPC creation using Terraform or CloudFormation?
+
 22. How do you integrate VPC with AWS Load Balancer and Auto Scaling?
