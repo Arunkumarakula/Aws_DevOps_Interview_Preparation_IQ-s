@@ -76,7 +76,7 @@
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-8. What is the difference between local-exec and remote-exec provisioners?
+8. What is the difference between local-exec and remote-exec provisioners.?
    - Provisioners in Terraform are used to execute scripts or commands after a resource is created. for example, installing software or configuring settings.
 
    * The local-exec provisioner runs commands on the local machine where Terraform runs, for example to update files, trigger scripts, or notify systems.
@@ -419,4 +419,5 @@ terraform-project/
 ├── tests/
 │   └── terratest_vpc_test.go
 └── README.md
+
 	
