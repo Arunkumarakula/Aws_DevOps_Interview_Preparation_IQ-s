@@ -1,0 +1,422 @@
+1. What are Terraform Workspaces and how do they help manage multiple environments?
+   - Terraform Workspaces are a way to manage multiple environments like dev, testing and production using the same Terraform configuration files but with different state files.
+   - Each workspace has its own Terraform state, which keeps resources separate and prevents conflicts between environments.
+
+   Example: 
+    - By default Terraform maintains a single state file that stores information about all the managed infrastructure. If I configure multiple environments like dev, testing, and production
+      using the same state file it can cause conflicts or confusion because all environments share the same resource tracking.
+
+    - To avoid this Terraform provides Workspaces, which allow us to manage multiple environments using the same configuration but with separate state files for each environment.
+
+    - Each workspace isolates with its own state file meaning changes in one environment do not affect others. This ensures clear separation between environments while keeping the
+      codebase consistent and reusable.
+
+ Commands: 
+ terraform workspace new dev
+ terraform workspace new test
+ terraform workspace new prod
+
+ Command to verify Workspace: terraform workspace list
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. How do you manage Terraform state files securely in a team?
+   - In a team environment, we manage Terraform state files securely by storing them in a remote backend, such as AWS S3.
+   - We also use state locking with DynamoDB to prevent multiple users from modifying the same state file at the same time.
+   - Access to state files is controlled using IAM policies or backend-specific authentication, ensuring only authorized users.
+   - Additionally we enable versioning and encryption on the backend S3 bucket encryption and versioning to protect and recover state in case of errors or data loss.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. Explain the purpose of terraform.tfstate and terraform.tfstate.backup?
+    
+  * terraform.tfstate: 
+      - The terraform.tfstate file is used by Terraform to store the current state of your infrastructure it mean's it keeps track of what resources have been created, their attributes.
+      - A sample terraform.tfstate file might look like JSON format.
+
+  * terraform.tfstate.backup: 
+      - The terraform.tfstate.backup file is a backup copy of the previous state, created automatically by Terraform every time the state changes like after a terraform apply.
+      - If something goes wrong or the main state file becomes corrupted, you can use the backup to recover the last known good state.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4. How do you enable version control for Terraform state files?
+   - I enable version control for Terraform state file by using a remote backend that supports automatic versioning such as AWS S3.
+   - I create an S3 bucket with versioning and encryption enabled and configure Terraform to store its state there.
+   - This way every change to the state file creates a new version, which we can roll back to if necessary.
+   - I never commit the state file to Git instead S3 handles versioning and DynamoDB provides locking for safe concurrent use.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. What are Remote Backends in Terraform How do you configure them (S3 + DynamoDB)?
+   - In Terraform, a remote backend is a storage location where the Terraform state file is stored remotely instead of locally.
+   - Remote backends allow multiple team members to share and access a single, consistent state securely.
+   - Common examples include AWS S3, Terraform Cloud.
+   - When using AWS, we typically store the state in an S3 bucket and use a DynamoDB table for state locking, preventing multiple users from modifying the state simultaneously.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+6. What happens when two people run terraform apply at the same time?
+   - If two people run terraform apply at the same time on the same state file Terraform can corrupt the state or create inconsistent infrastructure because both are trying to read and 
+     write to the state file simultaneously.
+
+   - To prevent this we use state locking which ensures only one operation can modify the state at a time.
+     For example: when using AWS, DynamoDB provides locking when the state is stored in an S3 remote backend.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+7. How do you lock state files to prevent concurrent changes?
+   - Terraform uses state locking to prevent concurrent modifications to the same state file.
+   - When we configure a remote backend, for example AWS S3 for storing the state and DynamoDB for locking. Terraform automatically locks the state during an operation like apply.
+   - If someone else tries to run Terraform at the same time, they’ll get a ‘state is locked’ error.
+   - Once the first operation completes the lock is released.
+   - This ensures the state remains consistent and prevents corruption.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+8. What is the difference between local-exec and remote-exec provisioners?
+   - Provisioners in Terraform are used to execute scripts or commands after a resource is created. for example, installing software or configuring settings.
+
+   * The local-exec provisioner runs commands on the local machine where Terraform runs, for example to update files, trigger scripts, or notify systems.
+   * The remote-exec provisioner connects to the remote resource like an EC2 instance via SSH and runs commands inside that resource, such as installing software or running setup scripts.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+9. What is the use of Terraform Modules How do you create reusable ones?
+   - Terraform modules are used to organize and reuse infrastructure code.
+   - A module is simply a collection of Terraform files usually main.tf, variables.tf, and outputs.tf. that define a specific component, such as a VPC, EC2 instance, or database.
+   - Instead of repeating the same code for different environments or regions, I create a reusable module once and then call it using the module block with different variable values.
+   - For example, I might have a reusable ec2 module that accepts inputs like the AMI ID, instance type, and environment name. Then I call it in dev, test, or prod folders with different 
+     configurations.
+   - This approach keeps the code clean, consistent, and easy to maintain.
+   - I usually store modules in a separate modules/ directory or even in a Git repository so they can be versioned and reused across multiple projects.
+
+
+terraform-project/
+├── modules/
+│   ├── vpc/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   │
+│   ├── ec2/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   │
+│   └── s3/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+│
+└── environments/
+    ├── dev/
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   ├── terraform.tfvars
+    │   └── backend.tf
+    │
+    ├── test/
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   ├── terraform.tfvars
+    │   └── backend.tf
+    │
+    └── prod/
+        ├── main.tf
+        ├── variables.tf
+        ├── terraform.tfvars
+        └── backend.tf
+
+  - Here Once everything configured in the modules we can call them in a environments like "./../modules/vpc"
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10. How do you structure Terraform code for multi-region or multi-account deployments?
+    - In multi-region or multi-account setups, I follow a modular and layered Terraform structure.
+    - I create reusable modules for core infrastructure components such as VPCs, EC2 instances, and IAM roles and then organize environment-specific folders that call these modules with
+      different input variables for each region or account.
+    - Each account or region has its own backend configuration and state file (for example, stored in AWS S3 with DynamoDB locking).
+    - I also use provider aliases or different AWS profiles to manage authentication for multiple accounts ensuring separation and isolation of resources.
+    - This design keeps the code reusable, isolated, and scalable while enabling consistent deployments across multiple regions or AWS accounts.
+
+
+terraform-multi-account/
+├── modules/
+│   ├── vpc/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── ec2/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── s3/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+│
+└── accounts/
+    ├── dev-account/
+    │   ├── us-east-1/
+    │   │   ├── main.tf
+    │   │   ├── variables.tf
+    │   │   ├── terraform.tfvars
+    │   │   └── backend.tf
+    │   └── eu-west-1/
+    │       ├── main.tf
+    │       ├── variables.tf
+    │       ├── terraform.tfvars
+    │       └── backend.tf
+    │
+    └── prod-account/
+        ├── us-east-1/
+        │   ├── main.tf
+        │   ├── variables.tf
+        │   ├── terraform.tfvars
+        │   └── backend.tf
+        └── ap-south-1/
+            ├── main.tf
+            ├── variables.tf
+            ├── terraform.tfvars
+            └── backend.tf
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+11. What are public and private modules, and how can you publish them to Terraform Registry?
+    - A public module is available to everyone through the Terraform Public Registry for example, the official terraform-aws-modules/vpc/aws module. Public modules are open-source and
+      can be used by any Terraform user.
+    - A private module, on the other hand, is hosted in the Private Registry within Terraform Cloud or Terraform Enterprise. It’s accessible only to members of a specific organization and
+      is used for internal, company-specific infrastructure patterns.
+  
+    * To publish a module to the Terraform Registry, you need to push it to a version-controlled GitHub repository that meets Terraform’s module naming conventions and includes required 
+      files like main.tf, variables.tf, outputs.tf, and a README.md. Once the repo is public and tagged with a release (like v1.0.0), Terraform automatically lists it in the public 
+      registry.
+    * For private modules, you link your Terraform Cloud organization to your VCS provider (like GitHub or GitLab) and publish the module there so it’s available only within your team.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+12. How do you handle secrets and sensitive variables in Terraform?
+    - In Terraform, I handle secrets and sensitive variables carefully by never hardcoding them directly in .tf files or committing them to version control.
+    - I mark sensitive values as sensitive = true in variable definitions, use environment variables or encrypted secret stores like AWS Secrets Manager, Vault, or Terraform Cloud 
+      variables to securely inject those secrets at runtime.
+    - I also make sure state files that contain sensitive data are stored securely usually in encrypted remote backends like S3 with server-side encryption enabled, and with restricted IAM
+      access.
+    - This ensures sensitive information is protected both at rest and in use.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+13. What is the difference between terraform import and terraform taint?
+    - terraform import is used to bring existing infrastructure that was created outside of Terraform under Terraform’s management it links a real resource to Terraform’s state file.
+    - terraform taint is used to mark an existing Terraform-managed resource for recreation during the next terraform apply. It tells Terraform that the resource is damaged or needs to be 
+      replaced. 
+
+    * To import this existing instance into Terraform: terraform import aws_instance.myserver i-0a1234567890abcd
+
+    * To taint: terraform taint aws_instance.myserver
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+14. How do you import an existing AWS resource into Terraform?
+    - In Terraform we use the terraform import command to bring existing resources that were created manually or by another tool under Terraform’s management.
+    - The command imports the resource into Terraform’s state file, allowing Terraform to track and manage it going forward.
+    - It doesn’t automatically create configuration code. we still need to define the resource in our .tf files to match the actual resource configuration.
+
+      For example, if I have an existing EC2 instance in AWS with ID i-0123456789abcdef0, I can import it with the command: terraform import aws_instance.my_ec2 i-0123456789abcdef0
+      - This links the AWS EC2 instance to my Terraform state.
+      - After that, I’ll write or adjust the Terraform configuration for that instance in my .tf files, and run terraform plan to make sure everything matches.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+15. What’s the best practice to manage Terraform variable files (.tfvars) across environments?
+    - The best practice to manage .tfvars files across environments is to create separate variable files for each environment like dev.tfvars, test.tfvars, and prod.tfvars.
+    - Each file contains environment specific values, while the Terraform configuration itself stays the same.
+    - When running Terraform commands we pass the appropriate variable file using the -var-file flag, for example: terraform apply -var-file="dev.tfvars"
+    - This approach keeps environment settings isolated, avoids hardcoding values in .tf files, and makes the infrastructure easily reusable and consistent across environments.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+16. What’s the difference between depends_on and implicit dependencies in Terraform?
+    - In Terraform, dependencies control the order in which resources are created.
+  
+    * Implicit dependencies are created automatically when one resource references another resource’s attribute.
+      - For example, if a subnet uses a VPC ID like vpc_id = aws_vpc.main.id, Terraform automatically knows that the VPC must be created first — that’s an implicit dependency.
+
+    * Explicit dependencies are defined manually using the depends_on argument.
+      - We use depends_on when there’s no direct reference between resources but we still want one resource to wait for another.
+      - For example, a null_resource that runs a deployment script might have depends_on = [aws_instance.web] to ensure it runs only after the EC2 instance is created.	
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------		
+17. How do you handle drift detection and reconciliation in Terraform?		
+    - Drift happens when the actual infrastructure changes outside of Terraform. for example, if someone manually modifies or deletes a resource in the cloud console.	
+    - To detect drift, I use the command terraform plan, which compares the real infrastructure state in the cloud with Terraform’s state file.	
+    - If Terraform detects differences it shows those changes in the plan output.
+   
+    To reconcile drift, I either:
+     - Update my Terraform configuration to match the manual changes, or Run terraform apply to revert the infrastructure back to the desired state defined in my Terraform code.
+
+    - In larger environments we automate drift detection by running periodic Terraform plan jobs in CI/CD pipelines or using Terraform Cloud/Enterprise which provides automatic drift 
+      detection and notifications.
+
+	
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+18. How do you roll back infrastructure if a Terraform apply fails mid-way?
+    - If a terraform apply fails mid-way, Terraform doesn’t automatically roll back the changes.
+    - Instead it saves a partial state file that includes all the resources successfully created or modified before the failure.
+    - To recover I first identify and fix the issue that caused the failure for example, a wrong configuration, missing permission, or API limit and then re-run terraform apply.
+    - Terraform will continue from the current state and only create or update what’s missing.
+    - If the infrastructure becomes inconsistent or unstable, I can restore the last known working state file from my remote backend (like S3 or Terraform Cloud) or revert my .tf 
+      configuration to a previous Git version.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+19. What is terraform plan -out, and how is it useful in CI/CD pipelines?
+    - The terraform plan -out command is used to save the execution plan that Terraform generates before applying any changes.
+    - Normally, terraform plan just shows what will change, but with the -out option, Terraform stores that plan in a file.
+    - This saved plan can then be safely reviewed or applied later using terraform apply <plan-file>.
+    - In CI/CD pipelines, this is very useful because it allows us to separate the planning and applying stages. for example, the CI job can generate and store the plan file for review or
+      approval, and once approved, another pipeline stage can apply the exact same plan.
+    - This ensures consistency, security, and no unexpected changes between the plan and apply steps.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+20. How do you integrate Terraform with Jenkins or GitHub Actions for automated provisioning?
+    - In Jenkins or GitHub Actions, Terraform integration is done by running it as part of the CI/CD pipeline.
+    - The pipeline initializes Terraform, runs terraform plan -out to generate a plan, and then applies that plan after review or approval.
+    - Credentials are stored securely, and the process ensures automated, consistent, and version-controlled infrastructure provisioning.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+21. What is the difference between Terraform and CloudFormation?
+    - Terraform and CloudFormation are both Infrastructure as Code tools, but the main difference is that Terraform is multi-cloud and open-source, while CloudFormation is AWS-specific.
+    - Terraform, developed by HashiCorp, supports many providers like AWS, Azure, GCP, and Kubernetes, whereas CloudFormation works only within AWS.
+    - Terraform uses its own declarative language called HCL (HashiCorp Configuration Language), while CloudFormation uses JSON or YAML templates.
+    - Terraform stores its state locally or remotely, giving flexibility and visibility over resources, while CloudFormation manages state internally within AWS.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+25. What is the Terraform Registry and how do you leverage community modules?
+    - The Terraform Registry is a public repository maintained by HashiCorp where we can find and share reusable Terraform modules, providers, and policy libraries.
+    - It contains both official modules (maintained by HashiCorp or cloud vendors) and community modules created by other Terraform users.
+    - I use the Terraform Registry to save time and maintain consistency by reusing trusted community modules instead of writing everything from scratch.
+
+    For example, if I need to create a VPC in AWS, I can use the official community module from the registry like this:
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.1.0"
+  name    = "my-vpc"
+  cidr    = "10.0.0.0/16"
+  azs     = ["us-east-1a", "us-east-1b"]
+  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
+}
+
+  - This module automatically handles subnets, routing, and gateways.
+  - Before using community modules, I always review their source code, version, and maintainer reputation to ensure security and quality.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+26. What are Terraform data sources and how do they differ from resources?
+    - In Terraform, data sources are used to read or fetch existing information from our cloud provider, while resources are used to create, modify, or delete infrastructure.
+    - In other words, a resource manages infrastructure but a data source just queries and references it.
+    - For example, I might use a data source to fetch the latest AWS AMI ID or an existing VPC ID, and then use that data when creating a new resource.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+27. How do you manage conditional creation of resources in Terraform (count, for_each)?
+   - In Terraform conditional creation of resources is typically managed using the count and for_each meta-arguments.
+
+   * The count argument allows us to create a resource a specific number of times, including zero which effectively lets us enable or disable a resource based on a condition.
+
+   * The for_each argument is used when we want to create multiple resources dynamically from a map or set of values, where each instance is uniquely identified by its key.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+28. What is the use of locals and outputs in Terraform?
+    - In Terraform, locals are used to define local variables within a module to simplify and reuse expressions, while outputs are used to expose values from a module or configuration so 
+      they can be accessed elsewhere.
+
+    - Locals help make the code cleaner and avoid repeating long or complex expressions.
+    - Outputs allow us to share important information, such as resource IDs or IP addresses, with other modules or with the user after a Terraform run.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+29. How do you ensure idempotency and reusability in Terraform code?
+    - Terraform ensures idempotency by maintaining the desired state of infrastructure in a state file.
+    - When we run terraform plan or apply, Terraform compares the actual infrastructure with the desired configuration and only makes the necessary changes. ensuring that running the same
+      code multiple times always produces the same result.
+
+    - To ensure reusability, I follow modular design practices. I use Terraform modules, variables, locals, and tfvars files to parameterize configurations and make them reusable across
+      different environments like dev, test, and prod.
+
+    - I also keep my code version-controlled use remote backends for shared state, and pin module and provider versions to maintain consistency.  
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+30. How do you perform infrastructure validation and security checks in Terraform?
+    - I perform infrastructure validation and security checks in Terraform using a combination of Terraform-native commands, linting tools, and policy-as-code frameworks.
+    - For validation, I use commands like terraform validate and terraform plan to ensure syntax correctness and detect configuration issues before applying.
+    - For security and compliance, I integrate tools like tfsec, Checkov, or Terraform Cloud Sentinel policies into CI/CD pipelines to automatically scan Terraform code for 
+      misconfigurations, exposed secrets, or policy violations.
+    - Additionally, we use OPA (Open Policy Agent) or Conftest for custom policy enforcement, and AWS Config or Cloud Custodian to continuously monitor deployed infrastructure.
+    - This approach ensures that infrastructure is validated, secure, and compliant before and after deployment.  
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+31. What is drift management and how can you automate it?
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+32. Explain a real-world production scenario where you resolved a Terraform state or drift issue?
+    - In one of my previous projects, we faced a Terraform state drift issue in our AWS production environment.
+    - We had multiple engineers managing infrastructure using Terraform, and one team member manually modified a resource in the AWS Console specifically, an RDS instance class was changed
+      from db.t3.medium to db.t3.large to handle higher load.
+    - During our next terraform plan, Terraform detected this as drift it showed that it wanted to change the instance type back to db.t3.medium (as per code), which could cause downtime
+      if applied.
+    
+To fix this safely, I took these steps:
+   - Identified the drift using terraform plan and confirmed it was due to a manual console change.
+   - Discussed with the database team to confirm if the new size (db.t3.large) was intended and should be permanent.
+   - Updated our Terraform configuration to match the desired production setup (changed the instance type in main.tf to db.t3.large).
+   - Ran terraform plan again to ensure no further changes were pending.
+   - Applied the change and reconciled the state to match actual infrastructure.
+   - This incident taught the team an important lesson — we implemented strict IAM policies to prevent manual changes in production and added a weekly drift detection pipeline that runs
+     terraform plan in “refresh-only” mode to alert us if any drift occurs.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+terraform-project/
+├── backend.tf - Configures the remote backend for storing the Terraform state (like S3, Terraform Cloud).
+├── data.tf - Used to define data sources (to fetch existing infrastructure like AMI IDs, VPCs).
+├── locals.tf - Defines local values — reusable computed expressions to simplify the configuration.
+├── main.tf - The core configuration file — defines infrastructure resources like EC2, S3, VPC, etc.
+├── outputs.tf - Defines output values (like resource IDs or IPs) to display or pass between modules.
+├── providers.tf - Configures Terraform providers (AWS, Azure, GCP, etc.) and their versions.
+├── terraform.tfvars - Stores variable values (like instance types, regions) — loaded manually or automatically.
+├── variables.tf - Declares all input variables used in your Terraform configuration.
+├── versions.tf - Defines Terraform and provider version constraints to maintain compatibility.
+├── terraform.lock.hcl - Auto-generated — locks provider versions to ensure consistent builds.
+├── .terraformignore - Similar to .gitignore — defines files Terraform should ignore during uploads to remote systems.
+├── scripts/
+│   └── userdata.sh
+├── modules/  - Contains reusable Terraform modules (like VPC, EC2, IAM, etc.).
+│   ├── vpc/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── ec2/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+├── policies/
+│   ├── enforce-tags.sentinel
+│   └── restrict-region.sentinel
+├── tests/
+│   └── terratest_vpc_test.go
+└── README.md
+	
