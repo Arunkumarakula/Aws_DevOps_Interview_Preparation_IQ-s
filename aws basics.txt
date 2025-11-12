@@ -1,0 +1,301 @@
+ 1. Explain your Day to Day activities?
+    - In my day-to-day activities as a DevOps Engineer, I focus on maintaining and improving the CI/CD pipeline to ensure smooth and automated code
+      delivery.
+    - I start my day by checking the status of overnight builds and deployments in Jenkins and reviewing logs, resolving any failed jobs, and ensuring the
+      latest code is successfully deployed to the test or staging environments.
+    - I also collaborated with developers to integrate new services or features, update Docker images, and manage Kubernetes deployments. I frequently use
+      tools like Terraform or Ansible to automate infrastructure provisioning and configuration.
+    - Monitoring is another key part of my role. I check dashboards in tools like Prometheus, Grafana, or CloudWatch to ensure system health, performance,
+      and uptime. If there are alerts or incidents, I investigate root causes and implement preventive measures.
+    - Apart from that, I spend time improving automation scripts, optimizing CI/CD pipelines, and participating in sprint meetings to plan upcoming releases
+      or infrastructure changes.
+    - Overall, my day revolves around ensuring the system is stable, scalable, and deployments are seamless.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Do you have hands-on in Linux? If yes, Which Platform?
+   - Yes, I have strong hands-on experience working with Linux systems.
+   - I’ve primarily worked on Ubuntu and Amazon Linux environments for application hosting and deployment, and I’ve also used ubuntu for on-premise servers.
+   - My daily work involves managing servers, configuring users and permissions, handling file systems, setting up cron jobs, analyzing logs under /var/log,
+     and managing network configurations.
+   - I also use Linux extensively for automation and scripting to automate deployment steps, cleanup tasks, and monitoring checks.
+   - Additionally, I work with Linux inside Docker containers and manage Linux-based EC2 instances in AWS. Overall, I’m very comfortable with Linux command-
+     line operations and system administration tasks.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. What is the latest version of Ubuntu?
+   - As of now, the latest Ubuntu release is Ubuntu 25.10, codenamed ‘Questing Quokka’, which was released in October 2025.
+   - However in production environments. we often prefer using the LTS (Long-Term Support) versions for stability. the latest LTS release is Ubuntu 24.04
+     LTS
+     (Noble Numbat), supported until April 2029.
+   - So while 25.10 is the newest version, most enterprises still rely on 24.04 LTS for long-term deployments.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4. I have an index.html file in GitHub. I need to deploy it on AWS with one load balancer. I’m given the GitHub username and token. How can I achieve this?
+   - To deploy the index.html from GitHub to AWS with a load balancer, I’d first create two EC2 instances and install a web server like Apache or Nginx.
+   - Then, I’d configure an AWS Application Load Balancer and attach both EC2 instances to it for high availability.
+   - Next, I’d set up an automated deployment pipeline. I could use AWS CodePipeline integrated with GitHub using the provided username and token, so
+     whenever code is pushed to the main branch, the pipeline automatically pulls the latest index.html and deploys it to the EC2 servers.
+   - Alternatively, I could use Jenkins for CI/CD. configure GitHub as the source, and use SSH or SCP to deploy the file to the web servers.
+   - Finally, I’d verify the deployment by accessing the Load Balancer’s DNS name in the browser to ensure the page is being served correctly.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. what is dependinces resources for the IP?
+   - In AWS, several resources depend on IP addresses. mainly EC2 instances, Elastic Network Interfaces (ENIs), Load Balancers, and NAT Gateways.
+   - Each EC2 instance gets a private IP, and an Public or Elastic IP can be attached for public access (optionally). Network Load Balancers also require
+     Elastic IPs if we want static IPs. NAT Gateways and VPN Gateways depend on public IPs for internet routing.
+   - Other components like Route 53, Security Groups, and DNS records indirectly depend on IPs for routing and access control.
+   - That’s why in DevOps we generally manage these dependencies through Infrastructure as Code, so when an IP or resource changes dependent resources
+     automatically update without manual intervention.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+6. What is the command to connect EC2 instance?
+  - To connect to an EC2 instance, I use SSH with the private key provided by AWS.
+    The basic command is: ssh -i <keypair>.pem ec2-user@<public-ip>
+  - The username depends on the AMI type. for example, ‘ec2-user’ for Amazon Linux and ‘ubuntu’ for Ubuntu.
+  - Before connecting, I make sure the key file has proper permissions using chmod 400, and that port 22 is open in the instance’s security group.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+7. How to implement Internet gateway?
+   - To enable internet access, I create an Internet Gateway, attach it to the VPC, and make the public subnet’s route table point 0.0.0.0/0 to the IGW. I
+     ensure instances in that subnet have public or Elastic IPs, and I open the right security-group (and NACL) rules. Without the default route, public IP,
+     and SG/NACL allows, the IGW alone won’t provide connectivity.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+8. How to configure internet gateway to route table?
+ 
+ - Step 1: Create an Internet Gateway
+
+    * Go to VPC → Internet Gateways → Create Internet Gateway
+    * Give it a name (e.g., my-igw)
+    * Click Attach to VPC and select your VPC (e.g., vpc-1234abcd)
+
+
+ - Step 2: Add Route to the Route Table
+ 
+   * Go to VPC → Route Tables
+   * Select the Route Table associated with your public subnet
+   * Under Routes, click Edit routes → Add route
+     Add this entry: Destination: 0.0.0.0/0
+   * Target: your Internet Gateway (e.g., igw-1234abcd)
+
+
+ - Step 3: Associate Route Table with the Subnet
+
+   * In the same Route Table, go to the Subnet associations tab.
+   * Click Edit subnet associations
+   * Select your public subnet
+
+
+ - Step 4: Verify Security
+
+   Make sure: The instance has a public IP or Elastic IP
+              - The security group allows outbound traffic (and inbound if needed)
+              - The NACL allows inbound/outbound ephemeral ports
+
+* To configure an Internet Gateway with a route table, first I create and attach the IGW to the VPC.
+  Then, I go to the route table associated with my public subnet and add a route with destination 0.0.0.0/0, targeting the Internet Gateway.
+  This ensures that any traffic going to the internet is routed through the IGW.
+  I also make sure the subnet is associated with that route table and that the EC2 instances have public IPs and proper security group rules.
+  Without the route and subnet association, the IGW won’t provide internet access.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+9. What is the exact command to log in to an EC2 instance, and what kind of authentication will you use? Do you need to provide a password or something
+   else?
+  - AWS uses public-private key pair authentication instead of passwords for better security.
+  - The public key is stored in the instance (~/.ssh/authorized_keys), and I authenticate using the private .pem key on my local machine.
+  - Therefore, I don’t need to enter any password. I also ensure the key file has the right permissions using chmod 400 before connecting.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10. In which path will you create index.html in Server ?
+    - When we need to  deploy a static website like index.html on a Linux web server. the location depends on which web server we are using mostly Apache
+      (httpd) or Nginx.
+    - The index.html file should be placed inside the web server’s document root directory.
+    - For Apache, the default path is /var/www/html/, and for Nginx, it’s usually /usr/share/nginx/html/.
+
+    So I will create or copy the file there for example:
+    - sudo cp index.html /var/www/html/
+    - Then restart the web service using sudo systemctl restart httpd or nginx.
+    - After that, the file will be accessible via the instance’s public IP or domain name.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+11. Explain Most common linux Commands
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+12. How to check one running process?
+    - A process is any running program in Linux. for example, Apache (httpd), Nginx, Jenkins, or a script we started. To check a running process, we can use
+      several commands, depending on what we need:
+        * To list all processes
+        * To find a specific process
+        * To see detailed info (PID, memory, CPU, etc.)
+        * To monitor it in real time
+
+ps -ef                     # Shows all running processes in full detail
+ps -ef | grep nginx        # Finds a specific process (e.g., nginx)
+pgrep nginx                # Displays process ID(s) for nginx
+top                        # Live view of running processes (CPU, memory usage)
+htop                       # Interactive version of top (easier to read/manage)
+sudo systemctl status nginx # Checks if a service like nginx is active or stopped
+pidof nginx                # Shows the PID of a running service
+kill <PID>                 # Gracefully stops a process by its PID
+kill -9 <PID>              # Forcefully kills a process (use with caution)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+13.  How to list running process?
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+14. You need to find one particular process id and how to kill that? Is it possible in single command?
+    - kill <process-name> eg: kill nginx
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+15. How to check disk usage?
+    - df -h           # Check total disk usage (human-readable)
+    - du -sh /path    # Check size of a specific directory
+    - du -sh *        # Show size of all files/directories in current path
+    - df -i           # Check inode usage
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+16. How to find free memory?
+    - To check free memory in Linux. I use the free -h command it shows total, used, and available memory in a readable format.
+    - I can also use top or htop for real-time monitoring, and cat /proc/meminfo to view detailed memory stats.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+17. How do you archive and compress directory in Linux?
+    - I use tar -czvf to create a compressed archive and tar -xzvf to extract it.
+
+    eg: to Create, tar -czvf archive-name.tar.gz /path/to/directory
+        to extract, tar -xzvf archive-name.tar.gz
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+18. Chmod 755 means?
+    - chmod 755 sets the file permissions so that the owner has full access (read, write, execute), and the group and others have read and execute
+      permissions only.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+19. If I provide chmod 755 means, what exactly will happen?
+    - When I run chmod 755 <file>, it changes the file’s permissions so the owner can read, write, and execute it, while the group and others can only read
+      and execute it.
+    - In other words, it makes the file executable by everyone, but only the owner can modify it.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+20. what is chown ?
+    - chown stands for change owner. it’s used to change the ownership of a file or directory in Linux.
+
+    The basic syntax is: chown <owner>:<group> <file>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+21. How to list all ssh users in Linux?
+    - To list all SSH users in Linux, I first check which users have shell access, since only those can log in through SSH.
+
+    * I use the command: grep '/bin/bash' /etc/passwd (This lists all users who have an interactive shell and are therefore allowed to log in via SSH.)
+ 
+    - To see users who are currently connected through SSH, I can use: who or w
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+22. If one apache server is running, I need to check logs? where do I check? In which directory?
+    - When an Apache web server is running, its log files are stored in the /var/log/httpd/ or /var/log/apache2/ directory depending on the Linux
+      distribution.
+      For example:
+
+      * On Red Hat / CentOS / Amazon Linux, Apache logs are in: /var/log/httpd/
+
+      * On Ubuntu / Debian, Apache logs are in: /var/log/apache2/
+
+    - Inside these directories, there are typically two main log files:
+
+      * access_log (or access.log) → records all incoming requests
+
+      * error_log (or error.log) → records errors and issues
+
+    - These logs are crucial for troubleshooting HTTP errors, debugging deployments, and monitoring traffic.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+23. what kind of logs can see in /var/log ?
+    - The /var/log directory in Linux contains all major system and application logs.
+    - It’s where the operating system, services, and applications write their log files for monitoring and troubleshooting.
+
+    Some common logs you can see there are:
+
+   * /var/log/messages → General system messages, boot logs, and errors (on RHEL/CentOS)
+
+   * /var/log/syslog → System and service logs (on Ubuntu/Debian)
+
+   * /var/log/secure → Authentication and security-related logs (SSH, sudo, etc.)
+
+   * /var/log/auth.log → Same as above on Ubuntu/Debian
+
+   * /var/log/dmesg → Kernel and hardware-related messages
+
+   * /var/log/cron → Cron job execution logs
+
+   * /var/log/maillog → Mail server logs
+
+   * /var/log/httpd/ or /var/log/apache2/ → Apache web server logs
+
+   * /var/log/nginx/ → Nginx web server logs
+
+   * /var/log/boot.log → Boot process information
+
+   * /var/log/yum.log → Package installation history (on RHEL-based systems)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+24. The what is the purpose of grep command?
+    - grep command in Linux is used to search for specific text or patterns inside files or command outputs. It stands for Global Regular Expression Print.
+
+     For example: grep "error" /var/log/syslog (This searches for the word ‘error’ inside the syslog file and prints all matching lines)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+25. I need to grep the keyword ‘hello’. Except for the keyword ‘hello’, I want to list out all the lines from the file linux.txt. Which flag will you use
+    with grep?
+   - To display all the lines except the ones containing the keyword ‘hello’, I’ll use the -v flag with the grep command.
+
+    The command is: grep -v "hello" linux.txt
+
+   - The -v option is used to invert the match, meaning it will show all lines that do not contain the word ‘hello’.
+   - So, this command will print every line from linux.txt except those containing the word ‘hello’.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+26. Difference between "cron" and "at" ?
+    - Both cron and at are used to schedule tasks in Linux, but they serve different purposes.
+
+    * cron is used for recurring or periodic tasks for example, running a backup script every day at midnight.
+    * at is used for a one-time task for example, running a script at a specific time only once.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+27. How to schedule activity in Linux and you need to run a script every 5 minutes?
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+28. Explain Git pull and Git Fetch?
+    - Both git fetch and git pull are used to update our local repository from the remote, but they work differently.
+
+    * git fetch only downloads the latest changes from the remote repository into local repo. it doesn’t change or merge your working branch.
+    * git pull does both it first performs a git fetch and then automatically merges those changes into your current branch.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+29. 
