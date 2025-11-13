@@ -1,0 +1,341 @@
+1. What is Jenkins and how does it fit into a CI/CD pipeline?
+   - Jenkins is an open-source automation server that helps us to Continuous Integration (CI) and Continuous Delivery (CD) in the software development
+     lifecycle.
+   - In a CI/CD pipeline, Jenkins automates the process of building, testing, and deploying applications.
+ 
+   * In the Continuous Integration phase, Jenkins automatically triggers builds whenever developers commit code to a shared repository. It compiles the code,
+     runs tests, and ensures the new code integrates correctly.
+
+   * In the Continuous Delivery/Deployment phase, Jenkins automates the process of deploying applications to staging or production environments. It integrates
+     with tools like Docker, Kubernetes, or Ansible to make deployments faster and more consistent.
+ 
+   * Overall, Jenkins helps us to reduce manual work, detect bugs early, and achieve faster, reliable software delivery.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+2. Explain the difference between Declarative and Scripted pipelines.
+   - Jenkins supports two types of pipelines: Declarative and Scripted. Both define CI/CD pipeline steps.
+ 
+   * A Declarative Pipeline uses a strict and predefined syntax inside a pipeline {} block. It follows a fixed format with required sections such as agent,
+     stages, stage, and steps. This makes it easier to read, write, and maintain. It’s ideal for standard CI/CD pipelines because it enforces consistency and
+     reduces errors.
+
+   * Scripted Pipeline is written in Groovy code and gives more flexibility. It does not have a strict structure, so we can use loops, conditions, and complex
+     logic. It is more powerful but harder to read and maintain.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3. Why did you choose a Declarative pipeline over a Scripted one in your last project?
+   - I chose a Declarative pipeline in my last project because it is easier to read, write, and maintain. The structure is fixed, so the team can clearly
+     understand each stage of the pipeline.
+   - Declarative pipelines also reduce mistakes because Jenkins validates the syntax and gives better error messages. This helped our team work faster and
+     keep the CI/CD process consistent.
+   - Since our requirements were straightforward — build, test, and deploy. we didn’t require very complex logic. Declarative was the best choice for a
+     clean and reliable pipeline.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+4. How do you integrate Jenkins with GitHub or Bitbucket for automated builds?
+   - To integrate Jenkins with GitHub for automated builds.
+
+   * Install the Git and GitHub plugins in Jenkins so it can communicate with GitHub repositories.
+     - Add GitHub credentials in Manage Jenkins → Credentials.
+     - I usually use a GitHub Personal Access Token or SSH key so Jenkins can securely access the repository.
+
+   * Create a Jenkins Pipeline job.
+     - In the job configuration, I select “Pipeline from SCM” and enter:
+     - The GitHub repository URL
+     - The branch to build (ex: main)
+     - The path to the Jenkinsfile
+
+   * Configure GitHub Webhooks.
+     - In the GitHub repo settings, I add a webhook pointing to: http://<jenkins-server>/github-webhook/
+     - This webhook sends push events to Jenkins.
+
+     - Once this setup is done, any code push to GitHub automatically triggers the Jenkins pipeline and starts the CI/CD process.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+5. How do you trigger a Jenkins job automatically when a code change is pushed?
+   - To trigger a Jenkins job automatically when code is pushed, I use GitHub Webhooks along with Jenkins build triggers.
+   - In Jenkins, I enable the option ‘GitHub hook trigger for GITScm polling’ inside the job configuration.
+   - Then I configure the pipeline using Pipeline script from SCM and connect Jenkins to my GitHub repository using a GitHub token.
+   - After that, I go to the GitHub repository and create a Webhook that points to http://<jenkins-server>/github-webhook/.
+   - Whenever a commit is pushed, GitHub sends a webhook event to Jenkins, and Jenkins automatically pulls the latest code and triggers the pipeline without
+     any manual action.
+ 
+  * GitHub webhooks don’t require Jenkins credentials. Jenkins only needs GitHub credentials to clone the repository, not to receive webhook events.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+6. Explain how Jenkins integrates with SonarQube for code quality checks?
+   - Jenkins integrates with SonarQube by using the SonarQube plugin to analyze the source code during the CI pipeline.
+
+   * Install the SonarQube Scanner Plugin in Jenkins
+
+   *  Generate the SonarQube Token (To allow Jenkins to authenticate with SonarQube)
+     - Click your Profile Icon (top right)
+     - Select My Account
+     - Go to the Security tab
+     - Under Generate Tokens, enter a name (ex: “jenkins-token”)
+     - Click Generate
+       Copy and save the token (SonarQube shows it only once). This token is used by Jenkins to send analysis data to SonarQube.
+
+  * Configure SonarQube Server in Jenkins
+    - Go to: Manage Jenkins → Configure System → SonarQube Servers
+    - Add:
+       Name: SonarQube
+       Server URL: http://<sonarqube-server>:9000
+
+   - Server Authentication Token: Add the token you generated in SonarQube (This connects Jenkins to your SonarQube instance.)
+
+  * Configure Sonar Scanner in Jenkins
+    - Go to: Manage Jenkins → Global Tool Configuration
+      Under SonarQube Scanner:
+      - Click Add SonarQube Scanner
+      - Give it a name (ex: sonar-scanner)
+      - Install automatically OR provide the path (This is the tool used to scan your code.)
+
+  * Add SonarQube Analysis Stage in Jenkins Pipeline
+
+Jenkins integrates with SonarQube by configuring the SonarQube Scanner plugin, adding the SonarQube server URL and token inside Jenkins, and including SonarQube analysis steps in the Jenkinsfile. The token is generated in SonarQube under My Account → Security. During the pipeline run, Jenkins sends the code to SonarQube for analysis and receives a Quality Gate result. If the quality gate fails, Jenkins can stop the build automatically.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+7. How can you secure Jenkins with Role-Based Access Control (RBAC)?
+   - we can secure Jenkins using Role-Based Access Control (RBAC) by installing the Role Strategy Plugin and defining users, roles, and permissions. 
+   - First we need to enable security in Jenkins and switch the authorization mode to Role-Based Strategy. 
+   - Then we can create global roles, project roles, and assign specific permissions such as read, build, configure, or administer. 
+   - Finally, we need to map users or groups to those roles. This ensures that each user only has the minimum permissions required for their work, improving
+     overall security.
+
+  * Install the Role Strategy Plugin
+   - Go to Manage Jenkins → Plugins → Available
+   - Search for Role Strategy Plugin
+   - Install and restart Jenkins (This plugin enables RBAC in Jenkins.)
+
+  * Enable Security in Jenkins
+   - Go to: Manage Jenkins → Configure Global Security
+   - Set: Security Realm → Jenkins’ own user database (or LDAP/AD if using corporate login)
+   - Authorization → Select Role-Based Strategy (This activates RBAC.)
+
+  * Create Roles
+   - Go to: Manage Jenkins → Manage and Assign Roles → Manage Roles
+     Here we can define:
+     - Global Roles (permissions applicable to entire Jenkins)
+     
+     Examples: admin → full access, developer → read + build, viewer → read-only
+
+    - Project Roles (permissions for specific jobs or folders)
+      Example: QA team → only access QA jobs, DevOps → manage pipelines only
+
+     we can assign permissions like: Read,Build, Configure, Administer, Job create/delete
+
+  * Create Users (or integrate LDAP/AD)
+    - Go to: Manage Jenkins → Manage Users → Create User
+    - Or integrate with: LDAP, Active Directory (So users authenticate securely.)
+
+  * Assign Roles to Users
+    - Go to: Manage Jenkins → Manage and Assign Roles → Assign Roles
+    - Map each user or group to: Global roles → overall access
+    - Project roles → job/folder-level access
+
+     Example:
+      - Developers → “developer” role
+      - QA → “qa-role” for QA jobs
+      - Managers → “viewer” role
+      - DevOps → “admin” role
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+8. What’s the difference between Jenkins freestyle and pipeline jobs?
+   - The main difference between Jenkins Freestyle jobs and Pipeline jobs is that Freestyle is GUI-based and limited, while Pipeline jobs use code and 
+     provide complete CI/CD automation.
+   - Freestyle jobs are good for simple tasks, but Pipeline jobs are script-driven, version-controlled, support complex workflows, and are more reliable for
+     modern DevOps practices
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+9. How do you implement DevSecOps stages (Dev → Test → QA → Prod) in Jenkins?
+   - To implement DevSecOps stages like Dev → Test → QA → Prod in Jenkins, I use a multi-stage Pipeline that includes security checks at every stage. Each
+    stage performs its own validation—such as code scanning, unit testing, integration testing, security scanning, and approval gates—before promoting the 
+    build to the next environment. By using Jenkins Pipeline, Credentials, SonarQube, dependency scanners, and approval steps, I ensure secure and automated
+    deployments across all environments.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+10. How do you use Docker in Jenkins to build and deploy containerized apps?
+    - I use Docker in Jenkins by adding Docker commands inside the Jenkins pipeline to build, tag, push, and deploy containerized applications. 
+    - Jenkins pulls the source code from Git, builds a Docker image using the Dockerfile, tags the image, and then pushes it to a container registry like
+      Docker Hub or AWS ECR using registry credentials stored in Jenkins.
+    - Once the image is available in the registry, Jenkins deploys it either by running a Docker container on a server or by updating a Kubernetes 
+      deployment. 
+    - This approach provides a fully automated CI/CD pipeline for containerized applications.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+11. Explain Jenkinsfile — what is it, and why is it used?
+    - A Jenkinsfile is a text file that contains the entire CI/CD pipeline as code. It defines all the steps Jenkins should run—such as build, test, scan,
+      and deploy—in a scripted or declarative format.
+    - We use a Jenkinsfile because it allows pipelines to be version-controlled along with our source code, makes the pipeline easy to reproduce, improves
+      collaboration, and enables fully automated DevOps workflows.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+12. How do you store and manage credentials securely in Jenkins?
+    - In Jenkins, credentials are stored securely using the Jenkins Credentials Store. 
+    - Jenkins encrypts all secrets on disk and exposes them to pipelines only when needed.
+    - I create credentials in Manage Jenkins → Credentials and store items like passwords, tokens, SSH keys, and certificates. 
+    - In the pipeline, I access them using the credentials() helper, withCredentials block, or environment variables.
+    - This approach ensures secrets are never hard-coded in the Jenkinsfile and are only available during the job runtime, keeping the CI/CD pipeline 
+      secure.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+13. How can you parallelize stages in a Jenkins pipeline to speed up builds?
+    - we can parallelize stages in a Jenkins pipeline using the parallel directive. 
+    - It allows multiple tasks—like unit tests, integration tests, linting, or builds—to run at the same time instead of sequentially.
+    - By running independent jobs in parallel, the overall pipeline execution becomes much faster. 
+    - Jenkins Pipeline provides the parallel block inside a stage, where each sub-stage runs simultaneously on separate agents or executors.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+14. How do you configure Jenkins to use agents (slaves) for distributed builds?
+    - To configure Jenkins for distributed builds, I add Jenkins agents and connect them to the master so that jobs can run on different machines. 
+    - First, I create a new node in Manage Jenkins → Manage Nodes, specify its labels, workspace, and remote directory, then choose the launch method—such
+      as SSH, JNLP agent, or Docker.
+    - After the agent connects successfully, I assign labels to it and use those labels in the Jenkinsfile or job configuration to run builds on that 
+      specific agent. This allows Jenkins to scale, run parallel jobs, and isolate builds on separate machines.
+
+pipeline {
+    agent { label 'linux-node' }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+15. What are Jenkins shared libraries and how do you use them?
+    - Jenkins Shared Libraries allow us to store reusable pipeline code in a separate Git repository and share it across multiple Jenkins pipelines. 
+    - Instead of repeating the same pipeline steps in every Jenkinsfile, we can place common functions, stages, and utilities in a shared library and load
+      them in your pipelines using the @Library annotation.
+    - This makes pipelines easier to maintain, reduces duplication, and enforces consistent CI/CD standards across all projects.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+16. How can you roll back a failed deployment automatically in Jenkins?
+    - You can automatically roll back a failed deployment in Jenkins by adding rollback logic into the pipeline. 
+    - This is done by detecting a failed deployment, then switching back to the previous stable build or previous Docker image, or redeploying the last 
+      known working version. 
+    - Jenkins pipelines support this using the post { failure { ... } } block, where you define the rollback steps.
+    - This ensures that if a deployment fails in production, Jenkins immediately restores the last working version without manual intervention.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+17. What’s the difference between “post” and “when” conditions in a Jenkins pipeline?
+    - The when condition in Jenkins decides whether a stage should run
+
+      Examples:
+        - Run only on the main branch
+        - Run only when a file changes
+        - Run only when user input is “yes”
+        - Run only for pull requests
+
+    - post condition decides what should happen after a stage or pipeline has finished.
+      It handles:
+        - Success actions
+        - Failure actions
+        - Notifications
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+18. How can you integrate Jenkins with Kubernetes for dynamic build agents?
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+19.Explain how Jenkins integrates with AWS services (ECR, ECS, Lambda)
+   - Jenkins integrates with AWS services like ECR, ECS, and Lambda by using AWS CLI, AWS credentials, and plugins to automate the build, container 
+     packaging, image pushing, and deployment process.
+   - It builds Docker images and pushes them to ECR, updates running containers in ECS, or deploys serverless code to Lambda through pipeline stages using
+     AWS CLI or SDK commands.
+   - By storing AWS credentials in Jenkins securely and triggering pipelines automatically, Jenkins provides a complete CI/CD workflow for AWS-based 
+     applications
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+20. How do you implement Blue-Green or Canary deployment strategies in Jenkins?
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+21. How can you trigger Jenkins pipelines via API calls or webhooks?
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+22. How do you handle environment-specific configurations in Jenkins?
+    - I handle environment-specific configurations in Jenkins by externalizing the values instead of hard-coding them in the pipeline.
+    - I use Jenkins credentials, environment variables, parameterized builds, and separate configuration files or config management tools for Dev, Test, QA,
+      and Prod.
+    - Based on the selected environment, Jenkins loads the correct values—such as API URLs, database credentials, image tags, or deploy targets—making 
+      deployments consistent, secure, and environment-agnostic
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+23. What are some common Jenkins plugins you’ve used and why?
+    - Some common Jenkins plugins I use regularly include the Git plugin, Pipeline plugin, Credentials Binding plugin, SonarQube Scanner plugin, Docker 
+      plugin, Blue Ocean plugin, and Role Strategy plugin.
+
+    - Each one solves a specific CI/CD need such as SCM integration, code quality scanning, containerization, secure credential handling, and pipeline 
+      visualization
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+24. How do you monitor Jenkins job failures and alert your team?
+    - I monitor Jenkins job failures using the built-in job history, Blue Ocean visualization, and monitoring plugins, and I configure automated alerts
+      through email or chat tools like Slack or Microsoft Teams.
+    - Whenever a pipeline fails, Jenkins sends an instant notification to the team with the console log and stage where it failed.
+    - This helps the team respond quickly, troubleshoot issues early, and maintain CI/CD stability.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+25. How do you archive build artifacts and store them in Artifactory or S3?
+    - I archive build artifacts in Jenkins using the archiveArtifacts step and then upload them to external storage like Artifactory or AWS S3 through
+      plugins or AWS CLI commands in the pipeline.
+    - Jenkins stores the artifacts for build history, while Artifactory or S3 serves as the long-term storage for deployment packages, versioning, and 
+      artifact management
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+26. How do you handle credentials and secrets when deploying to Kubernetes from Jenkins?
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+27. What’s the purpose of the Jenkinsfile’s agent section and how do you define it?
+    - The agent section in a Jenkinsfile specifies where the pipeline or a specific stage should run. It tells Jenkins which node, label, container, or
+      environment to use for executing the steps.
+    - You define it at the pipeline level or at the stage level to control execution placement—such as running on a Docker container, a specific agent 
+      label, or any available node.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+28. How can you integrate Jenkins with Terraform for Infrastructure as Code (IaC)?
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+29. What are the best practices for Jenkins pipeline security and maintenance?
+    - Some best practices for Jenkins pipeline security and maintenance include securing access with RBAC, storing all secrets in Jenkins Credentials Store,
+      using least-privilege permissions, signing or reviewing Jenkinsfiles, keeping agents isolated, enforcing code quality/security scans, enabling audit
+      logs, and regularly updating plugins and Jenkins versions.
+      These practices protect the CI/CD pipeline from security risks and ensure stable, maintainable operations.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+30. How do you optimize Jenkins performance in large-scale environments?
+    - To optimize Jenkins performance in large-scale environments, I use distributed agents, limit load on the controller, clean workspaces, tune executors,
+      archive artifacts externally, and regularly maintain plugins and Jenkins master.
+    - I also use shared libraries, parallel stages, scalable storage, and monitoring tools like Prometheus/Grafana to identify bottlenecks.
+    - This ensures faster builds, stable pipelines, and efficient resource usage.
