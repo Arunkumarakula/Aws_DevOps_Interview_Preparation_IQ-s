@@ -1,0 +1,40 @@
+Issues with Nginx:
+
+The issue happened because NGINX was not configured correctly for a Single Page Application.
+Routes like /dashboard don’t exist as real files, but NGINX tried to load them as files and returned 404 instead of serving index.html.
+This happened due to multiple conflicting location / blocks. After fixing the routing and adding the proper try_files rule, all routes worked.
+
+1. What was the issue you faced in NGINX?
+ -The issue occurred because the frontend was a Single Page Application, but NGINX was trying to serve client-side routes like /dashboard as real files.
+ - Since they didn’t exist, NGINX returned 404.
+ - This happened because the SPA fallback rule (try_files $uri /index.html) was not applied correctly
+
+
+2. What is an SPA and why does it need special NGINX configuration?
+  - SPA stands for Single Page Application.
+  - Only one HTML file exists (index.html) and all routing happens in the browser using JavaScript.
+  - So when a user directly loads /dashboard, the server must return index.html, not a file.
+  - NGINX needs a fallback rule to handle this.
+
+
+3. How did you identify the problem?
+   - I checked the NGINX logs and saw errors like:
+   - open() "/usr/share/nginx/html/dashboard" failed
+   - That made it clear NGINX was treating SPA routes as real files instead of falling back to index.html.
+
+4. How did you fix it?
+   - I fixed it by restructuring the NGINX server block:
+   - Only one location / block
+   - Added proper SPA routing:
+     try_files $uri $uri/ /index.html;
+
+Ensured static assets were served correctly
+
+Cleaned up proxy fallback logic
+After this, all routes loaded correctly.
+
+
+5. Why does try_files matter for SPAs?
+   - try_files checks if a file exists.
+   - If it doesn’t, NGINX sends index.html, allowing the SPA router to take over.
+   - Without it, NGINX returns a 404 for any client-side route.”
