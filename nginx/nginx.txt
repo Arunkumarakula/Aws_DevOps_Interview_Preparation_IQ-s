@@ -37,4 +37,4 @@ After this, all routes loaded correctly.
 5. Why does try_files matter for SPAs?
    - try_files checks if a file exists.
    - If it doesn’t, NGINX sends index.html, allowing the SPA router to take over.
-   - Without it, NGINX returns a 404 for any client-side route.”
+   - Without it, NGINX returns a 404 for any client-side route.
