@@ -296,6 +296,4 @@ kill -9 <PID>              # Forcefully kills a process (use with caution)
     * git fetch only downloads the latest changes from the remote repository into local repo. it doesn’t change or merge your working branch.
     * git pull does both it first performs a git fetch and then automatically merges those changes into your current branch.
 
-------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-29. 
+--------------------------------------------------------------------------------------------------------------------------------------------------
