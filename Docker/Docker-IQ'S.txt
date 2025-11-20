@@ -610,3 +610,68 @@
     5. Compliance & Monitoring:
         - Implement image scanning in CI/CD pipelines for early detection.
         - Maintain audit logs for all container and image activities.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+35. What is docker pause and docker unpause?
+
+    * docker pause:
+   - This command freezes all processes inside the container using the cgroups freezer
+   - The container is still running, but all processes are suspended.
+   - CPU usage drops to zero, Memory stays allocated.
+
+   * docker unpause:
+   - This command resumes all previously frozen processes in the container.
+   - The container continues running normally from the same point.
+   - No restart or process loss happens.
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+36. How do you copy files to/from a container?
+    - we can copy files to and from a Docker container using the docker cp command.
+    - docker cp /path/on/host/file.txt container_name:/path/in/container/
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+37. How do containers on the same network communicate?
+    - Containers on the same user-defined bridge network can communicate with each other directly using their container names as hostnames.
+    - Docker provides a built-in DNS service that automatically resolves container names to their IP addresses, enabling seamless communication.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+38. How do you expose ports in Docker?
+    - You expose ports in Docker using either the EXPOSE instruction in a Dockerfile or the -p / --publish option when running a container.
+   - The -p flag actually publishes the port and makes it accessible from outside the container, while EXPOSE is only documentation and does not
+     open the port by itself.
+
+    eg: docker run -p 8080:80 nginx
+
+        EXPOSE 80 - in the Dockerfile only the port but doesn’t publish it.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+39. How do you back up and restore Docker volumes?
+
+40. Where are Docker volumes stored?
+    - /var/lib/docker/volumes/
+    - Each volume has its own directory inside this path, containing the data and metadata.
+    - However, you should not modify this directory manually  always use Docker commands to manage volumes.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+41. How do you secure Docker containers?
+    - To secure Docker containers, we should follow key practices such as using minimal base images, running containers as non-root users, 
+      keeping images updated, restricting container capabilities, using secrets for sensitive data, scanning images for vulnerabilities, 
+      isolating networks, and enforcing proper resource limits.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+42. What are Docker secrets?
+    - Docker secrets are a secure way to store and manage sensitive information—such as passwords, API keys, certificates, and tokens—in an    
+      encrypted format so they are not exposed in images, environment variables, or source code.
+    - Docker secrets are primarily used in Docker Swarm, where they are encrypted at rest and in transit, and only accessible to containers that
+      explicitly need them.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
