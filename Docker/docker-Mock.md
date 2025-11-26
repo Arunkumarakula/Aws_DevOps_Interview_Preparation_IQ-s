@@ -1,0 +1,227 @@
+Mock Test on Docker
+
+What is Docker? Explain it in one or two lines?
+  - Docker is a containerization tool it packages an application along with its dependencies into a lightweight, Isolated container that can run
+    consistently across different environments.
+
+
+What is the difference between a Docker image and a Docker container?
+  - Docker image is a read only template that contains the application code and dependencies while a docker container is a running instance of that docker
+    image.
+
+
+Which command is used to list all running containers?
+   - To list all docker running containers we use docker ps
+   - If we want list all containers including stopped containers we use docker ps -a
+
+
+What does the "docker run -d and docker run -it" commands do?
+  - In docker a container runs in two methods:
+
+  1. Attached mode: this method uses -it means the container runs in the foreground.
+     - our terminal stays connected to the container's process so we can see the live logs and outputs directly.
+     - we cannot use the terminal for other commands, if we close the terminal the container stops.
+       eg: docker run -it nginx (Here the terminal is occupied until I stop the container)
+
+  2. Detached mode: this method uses -d means the container runs in the background.
+     - The containers runs in the background and it cannot occupy the terminal we can run other commands.
+     - we cannot see any logs of a container unless we check manually using docker logs
+       eg: docker run -it nginx
+
+
+What is the purpose of a Dockerfile?
+  - Dockerfile is a file it contains set of instructions to create/build a docker image automatically.
+  - It defines the base image, dependencies, configurations and commands that needed to create a reproducible docker image.
+
+
+What is the difference between CMD and ENTRYPOINT in a Dockerfile?
+  - In docker both CMD and ENTRYPOINT are used to specify what command should run inside the container.
+
+   1. ENTRYPOINT: ENTRYPOINT is used to define the main command that container must always run and cannot be overridden during the run time.
+
+   2. CMD: CMD is a default command for the container we can use this to override during the runtime.
+
+  - we can use ENTRYPOINT + CMD together when we want a fixed main executable but flexible default arguments. ENTRYPOINT sets the mandatory command, while
+    CMD allows users or CI pipelines to override parameters without rebuilding the image.
+
+
+What is a Docker volume and why do we use it, what are the types of volumes?
+  - Docker volume is a persistent storage mechanism used to store data outside the containers filesystem, so that the data remains safe even if the
+    container stops or deletes.
+
+   Types of Volumes(3):
+
+   1. Named Volumes: Named volumes are created by the user and managed by the docker, docker stores them under the host path var/lib/docker/volumes
+                     - These type is the best for the production level or for databases
+
+
+   2. Bind volumes: These volumes are attached to a specific path on the host machine they are mainly used in development because changes made on the host
+                    immediately reflect inside the container.
+
+   3. Tmpfs volumes: Tmpfs volumes store data only in memory (RAM) and not on disk. They are used for temporary or sensitive data where you don’t want
+                     persistence, and they offer very fast read/write performance
+
+
+What is Docker Compose and why do we use it?
+   - Docker compose is a tool used to define and run multi-container applications using a single YAML file.
+   - It allows us to start/stop and manage multiple services with a single command.
+
+
+What is the purpose of the docker-compose.yml file?
+   - A docker-compose.yml file is used to define the configuration of multiple containers including their images, env variables, networks, volumes so the
+     docker compose run them together.
+
+
+What is the difference between a Docker image layer and a container layer?
+   - A Docker image is made up of multiple read-only layers created during the build process. Each Dockerfile instruction adds a new image layer, and these
+     layers never change.
+   - When you run a container from that image, Docker adds one more layer on top called the container layer. This layer is writable any changes made at
+     runtime (files created, modified, or deleted) are stored here.
+
+
+What are Docker Networks and Types?
+  - A Docker network is a virtual network created and managed by Docker to control how containers communicate with each other, with the host, and with
+     external systems
+  - By default every container is isolated, When Docker is installed it automatically creates networks like bridge, host, none
+  - Docker stores network information in its internal network database /var/lib/docker/network/files/
+
+  1. Bridge Network (Default):
+     - It's default network created inside a docker host and containers are attached to this network get private IPs and can communicate only with other
+      containers on the same host.
+     - we can use this network for multi container applications.
+
+
+  2. Host Network:
+     - In host networking, the container shares the host machines network namespace, meaning it uses the hosts IP directly. There is no network isolation.
+     - This is useful for high-performance applications like Prometheus or monitoring agents that need direct access to host ports and metrics.
+     - use this for Performance-critical or monitoring containers.
+
+  3. None Network:
+     - This disables networking completely. The container has no network interface.
+     - This is used for security-sensitive tasks or batch jobs that do not need internet or container-to-container communication.
+
+4. Overlay Network:
+  - Overlay networks allow containers running on different Docker hosts to communicate as if they are on the same network.
+  - This is mainly used in Docker Swarm or multi-host microservices, where different nodes run different parts of the application.
+
+5. Custom Bridge Network:
+  - This is a user-created bridge network. Unlike the default bridge, custom bridge networks provide automatic DNS resolution, meaning containers can
+    communicate using names.
+
+
+What is the purpose of multi-stage builds in a Dockerfile?
+  - The purpose of multistage builds is to create smaller, cleaner, and more secure Docker image by separating the build process from the final runtime
+    image
+  - In the first stage we install dependencies, compile code and build the application code. In the final stage we copy only necessary output into a
+    minimal base image.
+  - This reduces image size, removes build tools, improves security, and speeds up deployments.
+
+  - Without multi-stage build: Build tools + compilers + dependencies all stay inside the final image. Image becomes huge (300–800 MB)
+  - With multi-stage build: Stage 1 Build the app and Stage 2 Copy only the final artifact (like .jar, .exe, or compiled binary) Final image becomes very
+    small (20–100 MB)
+
+
+What is the difference between docker stop and docker kill?
+  - docker stop sends a graceful shutdown signal (SIGTERM) to allow the container to stop safely, while docker kill immediately stops the container with
+    SIGKILL without giving it time to clean up.
+
+What is the purpose of a healthcheck in Docker?
+  - Health check in docker is used to continuously monitor the application inside a container is running healthy or not.
+  - If the health check fails repeatedly Docker marks the container as unhealthy which helps in monitoring, restarting or replacing faulty containers.
+
+  Command: HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+
+
+How do you add a healthcheck to a Docker container?
+  - We set a healthcheck either inside the Dockerfile using the HEALTHCHECK instruction or at runtime using docker run flags. The healthcheck runs a
+    command regularly to determine if the container is healthy or unhealthy.
+
+
+How do you check if a Docker container is healthy?
+  - We check container health with docker ps, which shows healthy/unhealthy status. For detailed logs, we use docker inspect <container>.
+
+What happens if a healthcheck fails?
+  - If the healthcheck fails repeatedly, Docker marks the container as unhealthy.
+  - Orchestrators like Swarm/Kubernetes can restart or replace it.
+
+
+Can we override a healthcheck at runtime?
+  - Yes a healthcheck defined in the Dockerfile can be overridden using docker run health flags.
+
+
+If a container becomes UNHEALTHY, will the application still work properly?
+  - The container may still be running, but the application inside it is not working correctly that’s why the healthcheck failed.
+  - So the container is alive, but the application inside it is usually broken or not responding as expected.
+  - Docker does NOT stop or restart the container when it becomes unhealthy. So technically, the container process is still alive.
+
+
+How to Fix an Unhealthy Docker Container?
+  - To fix an unhealthy container I check the container logs, inspect the healthcheck details, manually test the health endpoint inside the container, and
+    then fix the application or the healthcheck command. After that, I rebuild or restart the container.
+
+
+What is the difference between docker logs and docker exec?
+  - docker logs shows the output generated by a containers processes, while docker exec is used to run commands inside a running container.
+
+What happens when you run docker system prune?
+  - docker system prune removes all unused containers, networks, images, and build cache to free up disk space.
+
+
+What does the command docker tag do?
+  - docker tag is used to assign a new name or version tag (like latest or v1) to an existing Docker image.
+
+
+What does the command docker pull do?
+  - docker pull downloads an image from a Docker registry to the local system.
+
+
+What is the difference between docker save and docker export?
+  - docker save is used to transfer a full Docker image to another server, including all its layers.
+  - docker export is used to export only the container’s filesystem, not the full image.
+
+  eg: select image which you want to share to server- A to server-B
+
+      command: docker export -o mycontainer.tar mycontainer / docker export -o mycontainer.tar mycontainer
+
+      Share image: scp myapp.tar user@server:/home/user/
+
+      Load image on target machine: docker load -i myapp.tar
+
+
+What is the role of the Docker daemon (dockerd)?
+  - The Docker daemon (dockerd) is the core component of Docker that manages images, containers, networks, and volumes and handles all Docker API requests.
+
+What happens if dockerd crashes?
+  - If dockerd crashes, all running containers continue to run, but we lose control over them.
+  - we cannot use Docker commands like ps, stop, logs, exec, or start new containers until the daemon is restarted.
+
+
+What does docker attach do?
+  - The docker attach command connects our terminal to a running containers main process.
+  - we see the container’s live output and interact with it just like we started it in the foreground.
+
+
+What is the difference between docker image prune and docker system prune?
+   - docker image prune removes only unused images, while docker system prune removes all unused images, containers, networks, and build cache.
+
+
+What is the purpose of the docker info command?
+   - docker info displays detailed information about the Docker installation, including containers, images, storage drivers, and system configuration.
+
+
+What does the command docker history <image> show?
+   - docker history <image> shows all the layers of an image along with their size and the commands used to create them.
+
+
+What does the command docker stats do?
+   - docker stats shows real-time resource usage statistics for running containers, such as CPU, memory, network, and disk I/O.
+
+What is the first command you should run to find out why the container is restarting?
+   - When a container keeps restarting, it usually means the main process inside the container is crashing.
+   - The first and most important troubleshooting step is to check the logs of the container.
+
+   * docker logs:
+    - It shows the stdout/stderr output of the containerised application.
+    - If the app crashes due to errors (missing dependencies, port in use, DB connection issues, bad config), the logs will show it.
+    - It helps us to quickly identify whether the issue is: an application error, a configuration error, a missing environment variable, a port binding
+      issue, a dependency crash
