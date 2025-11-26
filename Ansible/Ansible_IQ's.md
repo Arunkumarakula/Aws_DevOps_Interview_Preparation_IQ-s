@@ -20,7 +20,6 @@
     - Since Ansible is agentless, no additional software is needed on the managed nodes.
     - playbooks are written and stored on the Control Node.
 
-
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 4. What is an inventory file in Ansible, and how is it structured?
@@ -34,7 +33,6 @@
       2. Dynamic Inventory where hosts are fetched automatically from external sources like AWS or Azure.
       3. Hybrid Inventory which combines both static and dynamic sources.
          - This flexibility allows Ansible to work efficiently in both traditional and cloud-based environments.
-
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -103,7 +101,6 @@
 │   ├── deploy.yml
 └── templates/
 
-
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 9. How do you reuse and organize Playbooks efficiently?
@@ -131,7 +128,6 @@
      * ansible-vault decrypt vars.yml  - Decrypt a file
      * ansible-vault edit secret.yml   - Edit an encrypted file securely.
 
-
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 12. What are Ansible Vaults and how do you use them?
@@ -157,15 +153,12 @@
                            - key: tags.Name
                              prefix: tag
 
-
              Step 2: Run Ansible commands using this inventory
                     - ansible-inventory -i aws_ec2.yml --list
-
 
              Step 3: Use it in a playbook
                     - ansible-playbook -i aws_ec2.yml site.yml
    Ansible will automatically pull all EC2 instances from your AWS account and target them by tags or other attributes.
-
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -189,7 +182,6 @@
     - It ensures a task runs only when a specific condition is true, based on facts, variables, or registered results.
     - The when clause uses Jinja2 expressions and is commonly used for OS-based tasks, conditional installations, or handling command results.
 
-
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 17. How can you use loops (with_items, loop) in Ansible tasks?
@@ -198,9 +190,8 @@
     - Loops help avoid duplication and make playbooks cleaner and more efficient.
     - For example, you can install multiple packages or create multiple users in a single task using a loop.
 
-
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- 
+
 18. What is idempotency in Ansible?
     - Idempotency in Ansible means that running the same playbook multiple times will not make any unnecessary changes if the system is already in the desired state.
     - It ensures automation is repeatable, reliable, and safe, and most Ansible modules are designed to be idempotent by default.
@@ -283,7 +274,6 @@
 │           ├── plugins/
 │           ├── docs/
 │           └── README.md
-
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
