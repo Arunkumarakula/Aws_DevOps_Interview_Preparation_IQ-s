@@ -1,0 +1,32 @@
+MySQL (Docker) Backup
+
+we had a MySQL database running inside a Docker container named redeemx_db.
+my goal is to create a database backup and get that backup file onto the host machine.
+
+
+list all running Docker containers
+    - docker ps 
+
+Exec into the container
+   - docker exec -it redeemx_db /bin/bash
+
+Create db dump file 
+   - mysqldump -u root -p redeemx_db > sqldmp.sql
+
+   - This command exported the entire database db and saved it inside the container as a file named sqldmp.sql
+   - Now we can see the sqldmp.sql in the container which consists of db data
+
+copy the backup from container to host
+    - docker cp redeemx_db:sqldmp.sql .
+
+    - copy the db file which is in the container from the host not from the container.
+
+Check the backup file in the currect path /home/ubuntu
+
+again logininto the DB container using exec
+
+execute all the SQL statements inside the file update_emp_ids.sql on the database redeemx_db
+    - mysql -u root -p redeemx_db < update_emp_ids.sql
+
+
+
