@@ -1,0 +1,11 @@
+* move or copy the local file to remote 
+  - scp update_emp_ids.sql developer@52.1.233.167:/tmp (do this from the path eg:downloads)
+
+* mv update_emp_ids.sql /home/ubuntu/
+
+* docker cp /home/ubuntu/update_emp_ids.sql redeemx_db:/update_emp_ids.sql
+  - copying the file from host to container
+
+* docker exec -it redeemx_db ls
+
+* docker exec -it redeemx_db /bin/sh

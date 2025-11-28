@@ -1,0 +1,8 @@
+ To copy the file from the remote machine to local
+ - scp ubuntu@52.1.233.167:/home/ubuntu/sqldmp.sql C:\Users\arunk\Downloads\
+
+Pass the username and password:
+- ubuntu
+- ubuntu123
+- if you don't know the password create a ubuntu password using the 
+  - sudo passwd ubuntu
