@@ -1,5 +1,5 @@
 * move or copy the local file to remote 
-  - scp update_emp_ids.sql developer@52.1.233.167:/tmp (do this from the path eg:downloads)
+  - scp update_emp_ids.sql developer@Public-Ip:/tmp (do this from the path eg:downloads)
 
 * mv update_emp_ids.sql /home/ubuntu/
 
